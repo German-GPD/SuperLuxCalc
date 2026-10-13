@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SuperLuxCalc</title>
+  <style>
+    :root {
+      --bg: #07111b;
+      --panel: #101d2d;
+      --panel-2: #17293d;
+      --accent: #ffd166;
+      --text: #edf6ff;
+      --muted: #9bb0c7;
+      --danger: #ff6b6b;
+      --success: #7df9b2;
+      --shadow: rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #030b14, #0d1d30 45%, #07111b 100%);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    .calc {
+      width: min(90vw, 420px);
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border-radius: 20px;
+      box-shadow: 0 25px 60px var(--shadow);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 18px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: bold;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ff9f1c, #ffd166);
+      color: #111;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .display {
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      padding: 14px 16px;
+      min-height: 92px;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .expr {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 1.3rem;
+      outline: none;
+    }
+
+    .result {
+      margin-top: 10px;
+      min-height: 28px;
+      font-size: 1.1rem;
+      color: var(--accent);
+      text-align: right;
+      word-break: break-all;
+    }
+
+    .pad {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      font-size: 1.02rem;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 14px 8px;
+      transition: 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .op {
+      background: rgba(255, 209, 102, 0.12);
+      color: #ffd166;
+    }
+
+    .wide { grid-column: span 2; }
+
+    .history {
+      margin-top: 16px;
+      max-height: 130px;
+      overflow: auto;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .history-item {
+      padding: 5px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.08);
+    }
+
+    .footer {
+      margin-top: 12px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="calc">
+    <div class="header">
+      <div class="brand">
+        <div class="logo">SL</div>
+        <div>
+          <div>SuperLuxCalc</div>
+          <div style="font-size: 12px; color: var(--muted); font-weight: normal;">Супер крутой калькулятор</div>
+        </div>
+      </div>
+      <div style="color: var(--muted); font-size: 12px;">v1.0</div>
+    </div>
+
+    <div class="display">
+      <input id="expr" class="expr" placeholder="Введите выражение" autocomplete="off" />
+      <div id="result" class="result"></div>
+    </div>
+
+    <div class="pad">
+      <button data-val="7">7</button>
+      <button data-val="8">8</button>
+      <button data-val="9">9</button>
+      <button class="op" data-val="/">÷</button>
+
+      <button data-val="4">4</button>
+      <button data-val="5">5</button>
+      <button data-val="6">6</button>
+      <button class="op" data-val="*">×</button>
+
+      <button data-val="1">1</button>
+      <button data-val="2">2</button>
+      <button data-val="3">3</button>
+      <button class="op" data-val="-">−</button>
+
+      <button data-val="0">0</button>
+      <button data-val=".">.</button>
+      <button class="op" id="evalBtn">=</button>
+      <button class="op" data-val="+">+</button>
+
+      <button data-val="(">(</button>
+      <button data-val=")">)</button>
+      <button data-val="^">^</button>
+      <button id="clearBtn" class="op">C</button>
+
+      <button data-val="sqrt(">sqrt</button>
+      <button data-val="sin(">sin</button>
+      <button data-val="cos(">cos</button>
+      <button data-val="tan(">tan</button>
+
+      <button data-val="log(">log</button>
+      <button data-val="ln(">ln</button>
+      <button data-val="pow(">pow</button>
+      <button id="ansBtn" class="op">ANS</button>
+    </div>
+
+    <div id="history" class="history"></div>
+
+    <div class="footer">
+      <span>Мощность: 🚀💎</span>
+      <span>Use keyboard</span>
+    </div>
+  </div>
+
+  <script>
+    const exprInput = document.getElementById('expr');
+    const resultBox = document.getElementById('result');
+    const historyBox = document.getElementById('history');
+    let lastAns = 0;
+
+    const safe = {
+      sqrt: Math.sqrt,
+      sin: Math.sin,
+      cos: Math.cos,
+      tan: Math.tan,
+      log: Math.log10,
+      ln: Math.log,
+      pow: Math.pow,
+      abs: Math.abs,
+      pi: Math.PI,
+      e: Math.E
+    };
+
+    function addHistory(expression, value) {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.textContent = `${expression} = ${value}`;
+      historyBox.prepend(item);
+      while (historyBox.children.length > 10) {
+        historyBox.removeChild(historyBox.lastChild);
+      }
+    }
+
+    function evaluateExpression(expression) {
+      const raw = expression.trim();
+      if (!raw) {
+        resultBox.textContent = '';
+        return null;
+      }
+
+      try {
+        const sanitized = raw.replace(/\^/g, '**');
+        if (/[^0-9+\-*/().,\s*^A-Za-z_]/.test(sanitized)) {
+          throw new Error('Недопустимые символы');
+        }
+
+        const fn = new Function(...Object.keys(safe), 'return (' + sanitized + ');');
+        const val = fn(...Object.values(safe));
+        if (typeof val !== 'number' || !isFinite(val)) {
+          throw new Error('Недопустимый результат');
+        }
+
+        lastAns = val;
+        resultBox.textContent = `= ${val}`;
+        addHistory(raw, val);
+        return val;
+      } catch (error) {
+        resultBox.textContent = 'Ошибка';
+        return null;
+      }
+    }
+
+    document.querySelectorAll('[data-val]').forEach(button => {
+      button.addEventListener('click', () => {
+        exprInput.value += button.dataset.val;
+        exprInput.focus();
+      });
+    });
+
+    document.getElementById('evalBtn').addEventListener('click', () => {
+      evaluateExpression(exprInput.value);
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      exprInput.value = '';
+      resultBox.textContent = '';
+    });
+
+    document.getElementById('ansBtn').addEventListener('click', () => {
+      exprInput.value += String(lastAns);
+      exprInput.focus();
+    });
+
+    exprInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        evaluateExpression(exprInput.value);
+      }
+      if (event.key === 'Escape') {
+        exprInput.value = '';
+        resultBox.textContent = '';
+      }
+    });
+  </script>
+</body>
+</html>
